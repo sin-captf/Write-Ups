@@ -74,6 +74,8 @@ Immediately after started to craft a payload with a couple of things in mind.
 {{''.__class__}}
 ```
 
+The empty string allows for you to get more results in your output.
+
 ![image](https://github.com/SinDaRemedy/Write-Ups/blob/CTFs/H%40cktivityCon-'21/PreGame/ScreenShots/Screen%20Shot%202021-09-14%20at%202.31.10%20AM.png)
 ``` python
 {{''.__class__.__mro__}}
